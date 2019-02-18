@@ -1,5 +1,8 @@
 import numpy as np
 import math
+from sympy import mod_inverse
+
+d = 8891
 
 def SieveOfEratosthenes(n): 
  
@@ -33,7 +36,7 @@ def FindPrimeFactors(n, prime_or_not, primes):
 # Extended Euclidean Algorithm 
 def GCDExtended(a, b, x, y):
 
-    # Base Case 
+    # Base Case
     if a == 0 :  
         x = 0
         y = 1
@@ -50,21 +53,59 @@ def GCDExtended(a, b, x, y):
   
     return gcd 
 
-# Generate prime numbers till N
-N = 1000000
-prime_or_not, primes = SieveOfEratosthenes(N)
+
+def BruteForceAttack(n, e, msg):
+
+    # Encrypt message with block size = 1 character.
+    encrypted_data = [pow(ord(char), e, n) for char in msg]
+
+    # Generate prime numbers till N
+    N = 1000000
+    prime_or_not, primes = SieveOfEratosthenes(N)
+
+    prime_factors = FindPrimeFactors(n, prime_or_not, primes)
+    print("Prime factors: ", prime_factors)
+
+    p = prime_factors[0]
+    q = prime_factors[1]
+    phi = (p-1) * (q-1)
+
+    #gcd = GCDExtended(e, phi, d, k)
+    #print(d, k)
+
+    # Private key
+    d = mod_inverse(e, phi)
+
+    # Decrypted data.
+    decrypted_data = "".join([chr(pow(char, d, n)) for char in encrypted_data])
+
+    if decrypted_data == msg:
+        print("Success: Decrypted message: ", decrypted_data)
+    else:
+        print("Failed: Decrypted message: ", decrypted_data)
+
+def Decrypt(encrypted_data, n):
+
+    # Decrypted data.
+    decrypted_data = [chr(pow(char, d, n)) for char in encrypted_data]
+    return decrypted_data
 
 
-n = 2773
-e = 1213
-m = 1216421
-d = 0
-k = 0
 
-prime_factors = FindPrimeFactors(n, prime_or_not, primes)
-print(prime_factors)
+def ChosenCipherAttack(n, e, msg):
 
-phi = (prime_factors[0] - 1) * (prime_factors[1] - 1)
+    # Encrypt message with block size = 1 character.
+    encrypted_data = [pow(ord(char) * 2, e, n) for char in msg]
 
-gcd = GCDExtended(e, phi, d, k)
-print(d, k)
+    decrypted_data = Decrypt(encrypted_data, n)
+
+    decrypted_data = "".join([chr(ord(char) // 2) for char in decrypted_data])
+
+    if decrypted_data == msg:
+        print("Success: Decrypted message: ", decrypted_data)
+    else:
+        print("Failed: Decrypted message: ", decrypted_data)
+
+
+BruteForceAttack(197*199, 323, "hello")
+ChosenCipherAttack(199*197,323, "hello")
